@@ -1,0 +1,1695 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TA的世界</title>
+<link href="https://fonts.googleapis.com/css2?family=Long+Cang&family=Ma+Shan+Zheng&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    width: 100vw;
+    height: 100vh;
+    overflow: hidden;
+    font-family: 'PingFang SC', 'Microsoft YaHei', sans-serif;
+  }
+
+  .screen {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    transition: opacity 0.8s ease, transform 0.8s ease;
+  }
+
+  #screen1 {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* ===== 界面一 ===== */
+  #screen1 {
+    background: linear-gradient(90deg, #8c52ff, #ff914d);
+    z-index: 2;
+    cursor: pointer;
+    zoom: 0.91;
+  }
+
+  #screen1 .float-text {
+    color: #fff;
+    font-size: clamp(16px, 2.8vw, 26px);
+    font-weight: 400;
+    letter-spacing: 2px;
+    text-shadow: 0 2px 12px rgba(0,0,0,0.15);
+    animation: floatUp 3s ease-in-out infinite;
+    text-align: center;
+    padding: 0 20px;
+    user-select: none;
+    font-family: 'PingFang SC', 'Microsoft YaHei', sans-serif;
+    line-height: 2;
+  }
+
+  #screen1 .float-text .big-ta {
+    display: block;
+    font-size: clamp(48px, 10vw, 96px);
+    font-weight: 900;
+    letter-spacing: 12px;
+    text-shadow: 0 4px 20px rgba(0,0,0,0.2);
+    margin-bottom: 8px;
+    line-height: 1.2;
+  }
+
+  #screen1 .float-text .sub-line {
+    display: block;
+    font-size: clamp(14px, 2.2vw, 20px);
+    font-weight: 400;
+    letter-spacing: 1px;
+    line-height: 1.8;
+  }
+
+  #screen1 .float-text .star-line {
+    display: block;
+    font-size: clamp(14px, 2.2vw, 20px);
+    font-weight: 400;
+    letter-spacing: 1px;
+    margin-top: 4px;
+  }
+
+  #screen1 .hint {
+    position: absolute;
+    bottom: 60px;
+    color: rgba(255,220,230,0.8);
+    font-size: 14px;
+    letter-spacing: 4px;
+    animation: pulse 2s ease-in-out infinite;
+  }
+
+  @keyframes floatUp {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-20px); }
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 0.5; }
+    50% { opacity: 1; }
+  }
+
+  #screen1.hidden {
+    opacity: 0;
+    transform: scale(1.1);
+    pointer-events: none;
+  }
+
+  /* ===== 界面二 ===== */
+  #screen2 {
+    background: linear-gradient(135deg, 
+      #f8c4d0 0%, 
+      #dcc8ee 25%, 
+      #a8e6cf 50%, 
+      #c8e6a0 75%, 
+      #f5e6a0 100%
+    );
+    z-index: 1;
+    overflow-y: auto;
+    overflow-x: hidden;
+    zoom: 0.91;
+  }
+
+  /* ===== 动态粒子画布 ===== */
+  #particleCanvas {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    pointer-events: none;
+    z-index: 1;
+  }
+
+  /* ===== 动态浮动装饰 ===== */
+  .floating-deco {
+    position: absolute;
+    pointer-events: none;
+    z-index: 5;
+    animation: floatDeco linear infinite;
+  }
+
+  @keyframes floatDeco {
+    0% { transform: translateY(0) rotate(0deg) scale(1); opacity: 0; }
+    10% { opacity: 1; }
+    90% { opacity: 1; }
+    100% { transform: translateY(-100vh) rotate(360deg) scale(0.6); opacity: 0; }
+  }
+
+  /* 流星 */
+  .shooting-star {
+    position: absolute;
+    width: 80px;
+    height: 2px;
+    background: linear-gradient(90deg, rgba(255,255,255,0.9), transparent);
+    border-radius: 2px;
+    pointer-events: none;
+    z-index: 3;
+    opacity: 0;
+  }
+
+  .shooting-star.active {
+    animation: shoot 1.2s ease-out forwards;
+  }
+
+  @keyframes shoot {
+    0% { opacity: 1; transform: translateX(0) translateY(0) rotate(-35deg); }
+    100% { opacity: 0; transform: translateX(-300px) translateY(200px) rotate(-35deg); }
+  }
+
+  /* ===== 许愿纸条 ===== */
+  .wish-paper {
+    position: relative;
+    border-radius: 0;
+    padding: 40px 48px 34px;
+    box-shadow: 
+      0 8px 32px rgba(90, 62, 122, 0.18),
+      0 2px 6px rgba(0,0,0,0.06);
+    transform: rotate(0deg);
+    transition: all 0.6s ease;
+    z-index: 20;
+    width: clamp(360px, 34vw, 500px);
+    flex-shrink: 0;
+    background-color: #f8f3e0;
+    background-image: 
+      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n1'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='5' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n1)' opacity='0.06'/%3E%3C/svg%3E"),
+      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n2'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.35' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n2)' opacity='0.05'/%3E%3C/svg%3E"),
+      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100'%3E%3Cfilter id='n3'%3E%3CfeTurbulence type='turbulence' baseFrequency='0.02 0.2' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100' height='100' filter='url(%23n3)' opacity='0.035'/%3E%3C/svg%3E"),
+      linear-gradient(170deg, #fdfbf0 0%, #f8f3e0 30%, #f2ead0 60%, #f6f1dc 85%, #f0e8cc 100%);
+    clip-path: polygon(
+      0% 2%, 3% 0.3%, 6% 1.8%, 9% 0.5%, 13% 1.2%, 16% 0.2%, 20% 1.5%, 23% 0.6%, 27% 0%, 30% 1.1%, 34% 0.4%, 37% 1.3%, 41% 0.2%, 44% 0.8%, 48% 0%, 51% 1.2%, 55% 0.3%, 58% 1.5%, 62% 0.5%, 65% 1%, 69% 0.1%, 72% 0.7%, 76% 0%, 79% 1.1%, 83% 0.4%, 86% 1.3%, 90% 0.2%, 93% 0.9%, 97% 0.3%, 100% 1%,
+      99.5% 4%, 100% 8%, 99.2% 12%, 100% 17%, 99.6% 21%, 100% 25%, 99.3% 30%, 100% 34%, 99.5% 38%, 100% 42%, 99.2% 47%, 100% 51%, 99.6% 55%, 100% 59%, 99.3% 64%, 100% 68%, 99.5% 72%, 100% 77%, 99.2% 81%, 100% 85%, 99.6% 89%, 100% 93%, 99.3% 97%, 100% 100%,
+      97% 99.5%, 93% 100%, 90% 98.8%, 86% 100%, 83% 99.2%, 79% 100%, 76% 98.7%, 72% 100%, 69% 99.3%, 65% 100%, 62% 98.8%, 58% 100%, 55% 99.5%, 51% 100%, 48% 98.9%, 44% 100%, 41% 99.2%, 37% 100%, 34% 98.8%, 30% 100%, 27% 99.5%, 23% 100%, 20% 98.7%, 16% 100%, 13% 99.3%, 9% 100%, 6% 98.8%, 3% 100%, 0% 99%,
+      0.5% 96%, 0% 92%, 0.8% 88%, 0% 83%, 0.4% 79%, 0% 75%, 0.7% 70%, 0% 66%, 0.5% 62%, 0% 57%, 0.8% 53%, 0% 49%, 0.4% 44%, 0% 40%, 0.7% 36%, 0% 32%, 0.5% 27%, 0% 23%, 0.8% 18%, 0% 14%, 0.4% 10%, 0% 6%, 0.7% 3%, 0% 2%
+    );
+  }
+
+  .wish-paper::after {
+    display: none;
+  }
+
+  .wish-paper::before {
+    display: none;
+  }
+
+  .paper-title {
+    text-align: center;
+    font-size: clamp(31px, 4.1vw, 43px);
+    font-weight: 700;
+    color: #6b4a2a;
+    margin-bottom: 16px;
+    letter-spacing: 2px;
+    font-family: 'Long Cang', 'Ma Shan Zheng', cursive, sans-serif;
+  }
+
+  .paper-title::after {
+    content: '';
+    display: block;
+    width: 60%;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, #a07848, #c9a86c, #a07848, transparent);
+    margin: 8px auto 0;
+  }
+
+  /* 四宫格布局 */
+  .form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: auto auto;
+    gap: 22px;
+  }
+
+  /* 手绘波浪边框 */
+  .form-cell {
+    position: relative;
+    border: none;
+    border-radius: 0;
+    padding: 44px 38px 22px;
+    transition: transform 0.3s, box-shadow 0.3s;
+  }
+
+  /* 每个栏目不同背景色 */
+  .form-cell.cell-attr {
+    background-color: rgba(255, 220, 200, 0.35);
+  }
+
+  .form-cell.cell-personality {
+    background-color: rgba(200, 220, 255, 0.3);
+  }
+
+  .form-cell.cell-memory {
+    background-color: rgba(200, 240, 210, 0.3);
+  }
+
+  .form-cell.cell-env {
+    background-color: rgba(255, 240, 190, 0.35);
+  }
+
+  .form-cell:focus-within {
+    transform: scale(1.03);
+    box-shadow: 0 4px 16px rgba(124, 77, 255, 0.15);
+  }
+
+  /* 手绘波浪边框叠加层 */
+  .form-cell .wavy-border {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    pointer-events: none;
+    z-index: 1;
+  }
+
+  .form-cell textarea {
+    position: relative;
+    z-index: 2;
+  }
+
+  .form-cell .cell-label {
+    z-index: 2;
+  }
+
+  /* 左边两个位置与右边对齐 */
+  .form-cell.left {
+    transform: translateY(0);
+  }
+
+  /* 左上角标签 - 横向排布 */
+  .cell-label {
+    position: absolute;
+    top: 10px;
+    left: 8px;
+    writing-mode: horizontal-tb;
+    font-size: 21px;
+    font-weight: 700;
+    color: #7a5535;
+    letter-spacing: 1px;
+    font-family: 'Long Cang', 'Ma Shan Zheng', cursive, sans-serif;
+    user-select: none;
+  }
+
+  .form-cell textarea {
+    width: 100%;
+    padding: 4px 6px;
+    border: none;
+    background: transparent;
+    font-size: 24px;
+    color: #4a3520;
+    outline: none;
+    font-family: 'Long Cang', 'Ma Shan Zheng', cursive, sans-serif;
+    resize: none;
+    line-height: 1.4;
+  }
+
+  .form-cell textarea::placeholder {
+    color: #b8a07a;
+    font-size: 19px;
+  }
+
+  /* 图鉴输入框自定义滚动条 */
+  .form-cell textarea::-webkit-scrollbar {
+    width: 4px;
+  }
+  .form-cell textarea::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  .form-cell textarea::-webkit-scrollbar-thumb {
+    background: rgba(160, 120, 72, 0.25);
+    border-radius: 4px;
+  }
+  .form-cell textarea::-webkit-scrollbar-thumb:hover {
+    background: rgba(160, 120, 72, 0.4);
+  }
+
+  .submit-btn {
+    display: block;
+    width: 100%;
+    margin-top: 29px;
+    padding: 15px 0;
+    border: none;
+    border-radius: 30px;
+    background: linear-gradient(90deg, #7c4dff, #ff6b9d);
+    background-size: 200% 100%;
+    color: #fff;
+    font-size: 20px;
+    font-weight: 700;
+    letter-spacing: 4px;
+    cursor: pointer;
+    box-shadow: 0 4px 20px rgba(124, 77, 255, 0.35);
+    transition: transform 0.2s, box-shadow 0.2s;
+    animation: shimmer 3s ease infinite;
+  }
+
+  @keyframes shimmer {
+    0%, 100% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+  }
+
+  .submit-btn:hover {
+    transform: translateY(-2px) scale(1.02);
+    box-shadow: 0 6px 28px rgba(124, 77, 255, 0.5);
+  }
+
+  .submit-btn:active { transform: translateY(0); }
+
+  .submit-btn::after {
+    content: ' ✨';
+  }
+
+  /* 缩小版投递按钮 */
+  .submit-btn-small {
+    display: block;
+    width: fit-content;
+    margin-top: 13px;
+    margin-left: auto;
+    margin-right: auto;
+    padding: 11px 35px;
+    border: none;
+    border-radius: 0;
+    background: linear-gradient(135deg, #e8a0b8, #c8a8e0, #88d4b8, #c0d898, #f0d880);
+    background-size: 200% 100%;
+    color: #5a3e7a;
+    font-size: 20px;
+    font-weight: 700;
+    letter-spacing: 3px;
+    cursor: pointer;
+    box-shadow: none;
+    transition: transform 0.2s, box-shadow 0.2s;
+    animation: shimmer 3s ease infinite;
+    z-index: 20;
+    font-family: 'Long Cang', 'Ma Shan Zheng', cursive, sans-serif;
+    position: relative;
+    clip-path: polygon(
+      2% 0%, 6% 2%, 10% 0%, 15% 1.5%, 20% 0%, 25% 1%, 30% 0%, 35% 1.5%, 40% 0%, 45% 1%, 50% 0%, 55% 1.5%, 60% 0%, 65% 1%, 70% 0%, 75% 1.5%, 80% 0%, 85% 1%, 90% 0%, 95% 1.5%, 98% 0%,
+      100% 3%, 98.5% 8%, 100% 15%, 98% 22%, 100% 30%, 98.5% 38%, 100% 45%, 98% 52%, 100% 60%, 98.5% 68%, 100% 75%, 98% 82%, 100% 90%, 98.5% 95%, 100% 100%,
+      98% 100%, 94% 98%, 90% 100%, 85% 98.5%, 80% 100%, 75% 98%, 70% 100%, 65% 98.5%, 60% 100%, 55% 98%, 50% 100%, 45% 98.5%, 40% 100%, 35% 98%, 30% 100%, 25% 98.5%, 20% 100%, 15% 98%, 10% 100%, 5% 98.5%, 2% 100%,
+      0% 97%, 1.5% 92%, 0% 85%, 2% 78%, 0% 70%, 1.5% 62%, 0% 55%, 2% 48%, 0% 40%, 1.5% 32%, 0% 25%, 2% 18%, 0% 10%, 1.5% 5%, 0% 2%
+    );
+  }
+
+  .submit-btn-small:hover {
+    transform: translateY(-2px) scale(1.04);
+    box-shadow: none;
+  }
+
+  .submit-btn-small:active { transform: translateY(0); }
+
+  /* 纸条卷起动画 */
+  .wish-paper.rolling {
+    animation: rollUp 1.2s ease-in forwards;
+  }
+
+  @keyframes rollUp {
+    0% { transform: rotate(-2deg) scaleY(1); opacity: 1; }
+    30% { transform: rotate(-1deg) scaleY(0.5) scaleX(0.9); opacity: 1; }
+    60% { transform: rotate(0deg) scaleY(0.15) scaleX(0.4); opacity: 1; }
+    100% { transform: rotate(5deg) scaleY(0.06) scaleX(0.2) translateX(300px) translateY(-80px); opacity: 0; }
+  }
+
+  .wish-paper.reset-in {
+    animation: paperAppear 0.6s ease forwards;
+  }
+
+  @keyframes paperAppear {
+    0% { transform: rotate(-2deg) translateY(30px); opacity: 0; }
+    100% { transform: rotate(-2deg) translateY(0); opacity: 1; }
+  }
+
+  /* 飞行纸卷 */
+  .flying-scroll {
+    position: absolute;
+    width: 44px;
+    height: 22px;
+    background: linear-gradient(180deg, #fff9e6, #ffe8b0);
+    border: 2px solid #d4b8e0;
+    border-radius: 11px;
+    z-index: 100;
+    opacity: 0;
+    pointer-events: none;
+    left: calc(50% - 80px);
+    top: 50%;
+  }
+
+  .flying-scroll.fly {
+    opacity: 1;
+    animation: flyIntoBottle 1s 0.6s ease-in-out forwards;
+  }
+
+  @keyframes flyIntoBottle {
+    0% { transform: translate(0, 0) rotate(0deg); opacity: 1; }
+    40% { transform: translate(180px, -120px) rotate(200deg); opacity: 1; }
+    70% { transform: translate(250px, -40px) rotate(320deg); opacity: 0.9; }
+    100% { transform: translate(220px, 30px) rotate(400deg) scale(0.2); opacity: 0; }
+  }
+
+  /* ===== 许愿瓶 ===== */
+  .bottle-container {
+    position: relative;
+    width: clamp(360px, 34vw, 500px);
+    height: clamp(504px, 58vh, 700px);
+    flex-shrink: 0;
+    align-self: flex-start;
+    margin-left: 200px;
+  }
+
+  /* 瓶子贴纸 */
+  .bottle-sticker {
+    position: absolute;
+    width: clamp(36px, 4.5vw, 64px);
+    height: clamp(36px, 4.5vw, 64px);
+    pointer-events: none;
+    z-index: 15;
+    opacity: 0.9;
+    filter: drop-shadow(0 1px 3px rgba(0,0,0,0.08));
+  }
+
+  .sticker-top-left {
+    top: 2%;
+    left: -12%;
+    animation: stickerWobble 4s ease-in-out infinite;
+  }
+
+  .sticker-top-right {
+    top: 5%;
+    right: -10%;
+    animation: stickerWobble 4.5s ease-in-out infinite;
+    animation-delay: 0.5s;
+  }
+
+  .sticker-mid-left {
+    top: 38%;
+    left: -15%;
+    animation: stickerWobble 3.8s ease-in-out infinite;
+    animation-delay: 1s;
+  }
+
+  .sticker-mid-right {
+    top: 35%;
+    right: -14%;
+    animation: stickerWobble 4.2s ease-in-out infinite;
+    animation-delay: 1.5s;
+  }
+
+  .sticker-bot-left {
+    bottom: 8%;
+    left: -10%;
+    animation: stickerWobble 4.8s ease-in-out infinite;
+    animation-delay: 0.8s;
+  }
+
+  .sticker-bot-right {
+    bottom: 12%;
+    right: -12%;
+    animation: stickerWobble 3.5s ease-in-out infinite;
+    animation-delay: 2s;
+  }
+
+  .sticker-float-1 {
+    top: 55%;
+    left: -20%;
+    animation: stickerDrift 5s ease-in-out infinite;
+  }
+
+  .sticker-float-2 {
+    top: 18%;
+    right: -18%;
+    animation: stickerDrift 5.5s ease-in-out infinite;
+    animation-delay: 1.2s;
+  }
+
+  @keyframes stickerWobble {
+    0%, 100% { transform: rotate(-8deg) scale(1); }
+    50% { transform: rotate(8deg) scale(1.1); }
+  }
+
+  @keyframes stickerDrift {
+    0%, 100% { transform: translateY(0) rotate(0deg); opacity: 0.7; }
+    50% { transform: translateY(-10px) rotate(12deg); opacity: 1; }
+  }
+
+  .bottle-svg {
+    width: 100%;
+    height: 100%;
+    filter: drop-shadow(0 12px 40px rgba(90, 62, 122, 0.25));
+  }
+
+  /* 瓶内发光 */
+  .bottle-glow {
+    position: absolute;
+    top: 38%;
+    left: 18%;
+    width: 64%;
+    height: 45%;
+    background: radial-gradient(ellipse, rgba(255, 180, 220, 0.15) 0%, rgba(200, 130, 252, 0.06) 40%, transparent 70%);
+    border-radius: 50%;
+    animation: breathe 3s ease-in-out infinite;
+    pointer-events: none;
+  }
+
+  @keyframes breathe {
+    0%, 100% { transform: scale(1); opacity: 0.5; }
+    50% { transform: scale(1.08); opacity: 0.9; }
+  }
+
+  /* 瓶子底部光环 */
+  .bottle-ring {
+    position: absolute;
+    bottom: 6%;
+    left: 18%;
+    width: 64%;
+    height: 7%;
+    background: radial-gradient(ellipse, rgba(200, 130, 252, 0.12) 0%, transparent 70%);
+    border-radius: 50%;
+    animation: ringPulse 4s ease-in-out infinite;
+    pointer-events: none;
+  }
+
+  @keyframes ringPulse {
+    0%, 100% { transform: scaleX(1); opacity: 0.3; }
+    50% { transform: scaleX(1.12); opacity: 0.7; }
+  }
+
+  /* 瓶内星星 */
+  .bottle-sparkles {
+    position: absolute;
+    top: 32%;
+    left: 22%;
+    width: 56%;
+    height: 48%;
+    pointer-events: none;
+  }
+
+  .sparkle {
+    position: absolute;
+    animation: sparkleFloat 4s ease-in-out infinite;
+    opacity: 0.5;
+    transition: all 0.3s;
+    color: rgba(255, 230, 245, 0.85);
+    filter: blur(0.3px);
+    text-shadow: 
+      0 0 6px rgba(255, 200, 230, 0.8),
+      0 0 12px rgba(200, 180, 255, 0.5),
+      0 0 20px rgba(180, 220, 255, 0.3);
+  }
+
+  .sparkle:nth-child(1) { top: 8%; left: 12%; animation-delay: 0s; font-size: clamp(14px, 2vw, 24px); }
+  .sparkle:nth-child(2) { top: 22%; left: 55%; animation-delay: 0.7s; font-size: clamp(10px, 1.5vw, 18px); }
+  .sparkle:nth-child(3) { top: 42%; left: 25%; animation-delay: 1.4s; font-size: clamp(12px, 1.8vw, 20px); }
+  .sparkle:nth-child(4) { top: 60%; left: 60%; animation-delay: 2.1s; font-size: clamp(14px, 2vw, 22px); }
+  .sparkle:nth-child(5) { top: 35%; left: 40%; animation-delay: 0.3s; font-size: clamp(10px, 1.2vw, 16px); }
+  .sparkle:nth-child(6) { top: 75%; left: 18%; animation-delay: 1s; font-size: clamp(12px, 1.6vw, 18px); }
+  .sparkle:nth-child(7) { top: 50%; left: 70%; animation-delay: 1.8s; font-size: clamp(10px, 1.4vw, 16px); }
+  .sparkle:nth-child(8) { top: 15%; left: 38%; animation-delay: 2.5s; font-size: clamp(8px, 1vw, 14px); }
+  .sparkle:nth-child(9) { top: 85%; left: 45%; animation-delay: 0.5s; font-size: clamp(14px, 2vw, 22px); }
+  .sparkle:nth-child(10) { top: 68%; left: 35%; animation-delay: 1.6s; font-size: clamp(10px, 1.3vw, 16px); }
+
+  @keyframes sparkleFloat {
+    0%, 100% { transform: translateY(0) rotate(0deg) scale(1); opacity: 0.4; }
+    25% { transform: translateY(-6px) rotate(8deg) scale(1.1); opacity: 0.8; }
+    50% { transform: translateY(-12px) rotate(-5deg) scale(1.2); opacity: 1; }
+    75% { transform: translateY(-5px) rotate(5deg) scale(1.05); opacity: 0.65; }
+  }
+
+  /* 瓶子周围光环粒子 */
+  .bottle-particles {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    pointer-events: none;
+  }
+
+  .b-particle {
+    position: absolute;
+    border-radius: 50%;
+    animation: particleOrbit linear infinite;
+    opacity: 0;
+  }
+
+  @keyframes particleOrbit {
+    0% { transform: translateY(0) scale(0); opacity: 0; }
+    15% { opacity: 0.8; transform: scale(1); }
+    85% { opacity: 0.6; }
+    100% { transform: translateY(-120px) scale(0); opacity: 0; }
+  }
+
+  /* ===== 结束语 ===== */
+  .closing-words {
+    position: relative;
+    z-index: 10;
+    text-align: center;
+    padding: 48px 40px 60px;
+    margin-top: 20px;
+  }
+
+  .closing-line {
+    width: 120px;
+    height: 1.5px;
+    margin: 0 auto 20px;
+    background: linear-gradient(90deg, transparent, rgba(139, 106, 142, 0.3), transparent);
+    border: none;
+  }
+
+  .closing-words .closing-line:last-child {
+    margin: 20px auto 0;
+  }
+
+  .closing-text {
+    font-family: 'Long Cang', 'Ma Shan Zheng', cursive, sans-serif;
+    font-size: clamp(22px, 2.8vw, 30px);
+    color: #6b4a6e;
+    letter-spacing: 2px;
+    line-height: 1.8;
+    margin: 0;
+    font-weight: 700;
+    text-shadow: 0 1px 4px rgba(255,245,230,0.7);
+  }
+
+  .closing-text.sub {
+    font-size: clamp(17px, 2vw, 22px);
+    color: #8a6a8e;
+    margin-top: 6px;
+    font-weight: 600;
+  }
+
+  /* 成功提示 */
+  .success-msg {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) scale(0);
+    background: rgba(255,255,255,0.95);
+    backdrop-filter: blur(10px);
+    border-radius: 24px;
+    padding: 40px 56px;
+    text-align: center;
+    box-shadow: 0 16px 48px rgba(90, 62, 122, 0.3);
+    z-index: 200;
+    transition: transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+
+  .success-msg.show {
+    transform: translate(-50%, -50%) scale(1);
+  }
+
+  .success-msg .big-icon {
+    font-size: 52px;
+    margin-bottom: 12px;
+    animation: bounceIn 0.6s ease;
+  }
+
+  @keyframes bounceIn {
+    0% { transform: scale(0); }
+    50% { transform: scale(1.3); }
+    100% { transform: scale(1); }
+  }
+
+  .success-msg p {
+    font-size: 20px;
+    color: #5a3e7a;
+    font-weight: 700;
+    letter-spacing: 1px;
+  }
+
+  .success-msg .sub {
+    font-size: 13px;
+    color: #9b7fb8;
+    margin-top: 8px;
+    font-weight: 400;
+  }
+
+  /* ===== 漂浮水彩光斑装饰 ===== */
+  .bubble {
+    position: absolute;
+    pointer-events: none;
+    z-index: 2;
+    animation: washDrift linear infinite;
+    opacity: 0;
+  }
+
+  @keyframes washDrift {
+    0% { transform: translateY(0) translateX(0) scale(0.4) rotate(0deg); opacity: 0; }
+    8% { opacity: 0.5; transform: scale(0.7) rotate(5deg); }
+    30% { opacity: 0.35; transform: rotate(-8deg); }
+    60% { opacity: 0.25; transform: rotate(10deg); }
+    90% { opacity: 0.1; }
+    100% { transform: translateY(-95vh) translateX(var(--drift)) scale(1.1) rotate(-5deg); opacity: 0; }
+  }
+
+  /* 瓶子浮动动画 */
+  @keyframes bottleFloat {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-10px); }
+  }
+
+  /* ===== 页面主标题 ===== */
+  .main-title {
+    text-align: center;
+    padding: clamp(40px, 6vh, 80px) 20px clamp(20px, 3vh, 40px);
+    position: relative;
+    z-index: 10;
+  }
+
+  .main-title h1 {
+    font-size: clamp(30px, 5vw, 56px);
+    font-weight: 800;
+    letter-spacing: 4px;
+    color: #6b5a7a;
+    font-family: 'PingFang SC', 'Microsoft YaHei', sans-serif;
+    line-height: 1.3;
+  }
+
+  .main-title .subtitle {
+    font-size: clamp(15px, 2.1vw, 24px);
+    color: #5a5a6a;
+    letter-spacing: 1px;
+    margin-top: 10px;
+    font-family: 'PingFang SC', 'Microsoft YaHei', sans-serif;
+    font-weight: 400;
+    line-height: 1.6;
+  }
+
+  /* ===== 第一大板块 ===== */
+  .section-one {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: clamp(24px, 3.5vw, 56px);
+    padding: clamp(20px, 3vh, 40px) clamp(10px, 2vw, 30px);
+    max-width: 1560px;
+    margin: 0 auto;
+    position: relative;
+    z-index: 10;
+  }
+
+  /* 上排两栏 */
+  .section-top-row {
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    gap: clamp(24px, 3.5vw, 56px);
+    width: 100%;
+  }
+
+  /* 下排：形象手记+投递 与 瓶子 齐平 */
+  /* 下排标题 */
+  .bottom-title {
+    text-align: center;
+    font-size: clamp(22px, 2.8vw, 30px);
+    font-weight: 800;
+    color: #7b5ea7;
+    letter-spacing: 4px;
+    font-family: 'Long Cang', 'Ma Shan Zheng', cursive, sans-serif;
+    width: 100%;
+    position: relative;
+    z-index: 10;
+  }
+
+  .bottom-title::after {
+    content: '';
+    display: block;
+    width: 40%;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, #c490d8, transparent);
+    margin: 8px auto 0;
+  }
+
+  .bottom-subtitle {
+    font-size: clamp(14px, 1.8vw, 20px);
+    font-weight: 400;
+    color: #8a72a8;
+    letter-spacing: 1.5px;
+    margin-top: 8px;
+    font-family: 'Long Cang', 'Ma Shan Zheng', cursive, sans-serif;
+  }
+
+  .section-bottom-row {
+    display: flex;
+    align-items: flex-start;
+    justify-content: flex-start;
+    gap: clamp(24px, 3.5vw, 56px);
+    width: auto;
+    max-width: 100%;
+  }
+
+  .wish-paper-col {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0;
+    margin-left: -100px;
+  }
+
+  /* 上排卡片 */
+  .portrait-card,
+  .personality-card {
+    flex: 1 1 clamp(260px, 32.5vw, 468px);
+    min-width: 0;
+  }
+
+  .portrait-card {
+    flex: 1 1 clamp(260px, 32.5vw, 468px);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background: transparent !important;
+    border: none !important;
+    border-radius: 24px;
+    position: relative;
+    overflow: hidden;
+    box-shadow: none !important;
+    backdrop-filter: none;
+  }
+
+  .portrait-card:hover {
+    transform: none;
+    box-shadow: none !important;
+  }
+
+  .portrait-card::before {
+    display: none;
+  }
+
+  .portrait-card > * {
+    position: relative;
+    z-index: 1;
+  }
+
+  .portrait-card h3 {
+    color: #7b5ea7;
+    margin-bottom: clamp(10px, 1.5vw, 18px);
+  }
+
+  .portrait-header {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: 100%;
+    margin-bottom: clamp(8px, 1vw, 14px);
+  }
+
+  .portrait-header .star {
+    font-size: clamp(14px, 1.6vw, 20px);
+  }
+
+  .portrait-header .star-left {
+    color: #9b6fc0;
+  }
+
+  .portrait-header .star-right {
+    color: #ffa940;
+  }
+
+  .portrait-header .title-text {
+    font-size: clamp(18px, 2.3vw, 26px);
+    font-weight: 800;
+    color: #7b5ea7;
+    letter-spacing: 3px;
+    font-family: 'PingFang SC', 'Microsoft YaHei', sans-serif;
+  }
+
+  .portrait-frame {
+    width: clamp(143px, 15.6vw, 234px);
+    height: clamp(143px, 15.6vw, 234px);
+    border-radius: 0;
+    background: transparent;
+    border: none;
+    cursor: default;
+    transition: transform 0.3s;
+    overflow: hidden;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    animation: portraitBreathe 4s ease-in-out infinite;
+  }
+
+  @keyframes portraitBreathe {
+    0%, 100% { transform: scale(1) translateY(0); }
+    50% { transform: scale(1.04) translateY(-6px); }
+  }
+
+  .portrait-frame:hover {
+    animation-play-state: paused;
+  }
+
+  .portrait-frame img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+  }
+
+  /* 肖像上下两栏 */
+  .portrait-top,
+  .portrait-bottom {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+  }
+
+  /* 照片左右装饰行 */
+  .portrait-photo-row {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+  }
+
+  .portrait-deco-group {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    position: relative;
+  }
+
+  .portrait-deco {
+    font-size: clamp(22px, 2.5vw, 36px);
+    opacity: 0.7;
+    user-select: none;
+  }
+
+  .portrait-deco-sm {
+    font-size: clamp(12px, 1.4vw, 20px);
+    opacity: 0.6;
+    position: absolute;
+    user-select: none;
+  }
+
+  .portrait-deco.deco-left {
+    color: #c490d8;
+    animation: decoFloatLeft 3s ease-in-out infinite;
+  }
+
+  .portrait-deco.deco-right {
+    color: #ffa9a0;
+    animation: decoFloatRight 3.5s ease-in-out infinite;
+    animation-delay: 0.5s;
+  }
+
+  .deco-sm-1 {
+    top: -8px; left: -14px;
+    color: #b8a0d8;
+    animation: decoSpin 5s linear infinite;
+  }
+
+  .deco-sm-2 {
+    bottom: -6px; right: -10px;
+    color: #8cc4a0;
+    animation: decoSpin 6s linear infinite reverse;
+  }
+
+  .deco-sm-3 {
+    top: -10px; right: -12px;
+    color: #f0c070;
+    animation: decoSpin 4.5s linear infinite;
+  }
+
+  .deco-sm-4 {
+    bottom: -8px; left: -14px;
+    color: #a0d8b0;
+    animation: decoSpin 5.5s linear infinite reverse;
+  }
+
+  @keyframes decoFloatLeft {
+    0%, 100% { transform: translateY(10px) rotate(-12deg); opacity: 0.7; }
+    50% { transform: translateY(0px) rotate(8deg); opacity: 1; }
+  }
+
+  @keyframes decoFloatRight {
+    0%, 100% { transform: translateY(-8px) rotate(18deg); opacity: 0.7; }
+    50% { transform: translateY(4px) rotate(-5deg); opacity: 1; }
+  }
+
+  @keyframes decoSpin {
+    0% { transform: rotate(0deg) scale(1); opacity: 0.5; }
+    50% { transform: rotate(180deg) scale(1.2); opacity: 0.9; }
+    100% { transform: rotate(360deg) scale(1); opacity: 0.5; }
+  }
+
+  .portrait-bottom {
+    margin-top: clamp(12px, 1.5vw, 20px);
+    padding-top: clamp(12px, 1.5vw, 20px);
+  }
+
+  /* 肖像描述文字 */
+  .portrait-desc {
+    margin-top: clamp(8px, 1vw, 14px);
+    font-size: 17px;
+    color: #4a3560;
+    letter-spacing: 0.5px;
+    font-family: 'PingFang SC', 'Microsoft YaHei', sans-serif;
+    line-height: 1.5;
+    text-align: left;
+    padding: 0 clamp(8px, 1vw, 16px);
+  }
+
+  .section-card {
+    background: rgba(255, 255, 255, 0.45);
+    backdrop-filter: blur(12px);
+    border-radius: 20px;
+    padding: clamp(26px, 3.25vw, 47px);
+    box-shadow: 
+      0 8px 32px rgba(90, 62, 122, 0.12),
+      inset 0 1px 0 rgba(255,255,255,0.6);
+    border: 1px solid rgba(255,255,255,0.5);
+    transition: transform 0.3s, box-shadow 0.3s;
+  }
+
+  .section-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 
+      0 12px 40px rgba(90, 62, 122, 0.18),
+      inset 0 1px 0 rgba(255,255,255,0.6);
+  }
+
+  .section-card h3 {
+    font-size: clamp(18px, 2.3vw, 26px);
+    font-weight: 700;
+    color: #7b5ea7;
+    margin-bottom: clamp(12px, 1.5vw, 20px);
+    letter-spacing: 3px;
+    font-family: 'PingFang SC', 'Microsoft YaHei', sans-serif;
+    text-align: center;
+    position: relative;
+  }
+
+  .section-card h3::after {
+    content: '';
+    display: block;
+    width: 40%;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, #c490d8, transparent);
+    margin: 8px auto 0;
+  }
+
+  /* 基因解析板块 */
+  .personality-card {
+    background: transparent !important;
+    box-shadow: none !important;
+    border: none !important;
+    backdrop-filter: none;
+  }
+
+  .personality-card:hover {
+    transform: none;
+    box-shadow: none !important;
+  }
+
+  .personality-card .gene-rows {
+    display: flex;
+    flex-direction: column;
+    gap: clamp(14px, 1.8vw, 22px);
+  }
+
+  .gene-row {
+    display: flex;
+    align-items: center;
+    gap: clamp(12px, 1.5vw, 20px);
+  }
+
+  .gene-img-wrap {
+    flex: 0 0 clamp(83px, 9.1vw, 130px);
+    height: clamp(83px, 9.1vw, 130px);
+    border-radius: 16px;
+    overflow: hidden;
+    background: rgba(255,255,255,0.4);
+    box-shadow: 0 2px 10px rgba(90, 62, 122, 0.1);
+  }
+
+  .gene-img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+  }
+
+  .gene-info {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    align-items: flex-start;
+  }
+
+  .gene-name {
+    font-size: 17px;
+    font-weight: 700;
+    color: #7b5ea7;
+    letter-spacing: 2px;
+    font-family: 'PingFang SC', 'Microsoft YaHei', sans-serif;
+  }
+
+  .gene-desc {
+    font-size: 17px;
+    color: #5a5a6a;
+    line-height: 1.5;
+    font-family: 'PingFang SC', 'Microsoft YaHei', sans-serif;
+    letter-spacing: 0.3px;
+  }
+
+</style>
+</head>
+<body>
+
+<!-- ===== 界面一 ===== -->
+<div id="screen1" class="screen" onclick="goToScreen2()">
+  <div class="float-text">
+    <span class="big-ta">TA</span>
+    <span class="sub-line">「TA 是谁？」的答案，已经由我们共同写下；<br>现在，轮到我们一起画出 TA 的模样。</span>
+    <span class="star-line">你的每一个创意，都会成为点亮 TA 的一颗星✨</span>
+  </div>
+  <div class="hint">— 点击任意处进入 —</div>
+</div>
+
+<!-- ===== 界面二 ===== -->
+<div id="screen2" class="screen">
+  <!-- 粒子画布 -->
+  <canvas id="particleCanvas"></canvas>
+
+  <!-- 主标题 -->
+  <div class="main-title">
+    <h1>TA长什么样？</h1>
+    <div class="subtitle">你的每一个创意，都是点亮 TA 的星✨</div>
+  </div>
+
+  <!-- 第一大板块 -->
+  <div class="section-one">
+    <!-- 上排：肖像 + 基因解析 -->
+    <div class="section-top-row">
+    <!-- 肖像 + 人物设定 -->
+    <div class="section-card portrait-card">
+      <div class="portrait-top">
+        <div class="portrait-header">
+          <span class="star star-left">✦</span>
+          <span class="title-text">TA的灵动瞬间</span>
+          <span class="star star-right">✦</span>
+        </div>
+        <div class="portrait-photo-row">
+          <div class="portrait-deco-group deco-group-left">
+            <span class="portrait-deco deco-left">❀</span>
+            <span class="portrait-deco-sm deco-sm-1">✦</span>
+            <span class="portrait-deco-sm deco-sm-2">🌿</span>
+          </div>
+          <div class="portrait-frame" id="portraitFrame">
+            <img src="TA 的肖像.png" alt="TA的肖像" />
+          </div>
+          <div class="portrait-deco-group deco-group-right">
+            <span class="portrait-deco deco-right">❀</span>
+            <span class="portrait-deco-sm deco-sm-3">✧</span>
+            <span class="portrait-deco-sm deco-sm-4">🍃</span>
+          </div>
+        </div>
+      </div>
+      <div class="portrait-bottom">
+        <div class="portrait-header">
+          <span class="star star-left">✦</span>
+          <span class="title-text">人物设定</span>
+          <span class="star star-right">✦</span>
+        </div>
+        <p class="portrait-desc">TA是踏实靠谱、敢创新、能成长的职场伙伴。做事重方法、凭数据、稳落地，务实不内耗；敢突破常规、大胆尝试新方法；心态坚韧抗压，正直乐观，遇难题不退缩，持续精进成长。</p>
+      </div>
+    </div>
+
+    <!-- 基因解析 -->
+    <div class="section-card personality-card">
+      <h3>🧬 基因解析</h3>
+      <div class="gene-rows">
+        <div class="gene-row">
+          <div class="gene-img-wrap">
+            <img src="理性基因.png" alt="理性基因" class="gene-img" />
+          </div>
+          <div class="gene-info">
+            <span class="gene-name">理性基因</span>
+            <span class="gene-desc">理性靠谱、条理务实，遇事讲方法、凭数据落地，稳扎稳打踏实干事。</span>
+          </div>
+        </div>
+        <div class="gene-row">
+          <div class="gene-img-wrap">
+            <img src="创新基因.png" alt="创新基因" class="gene-img" />
+          </div>
+          <div class="gene-info">
+            <span class="gene-name">创新基因</span>
+            <span class="gene-desc">敢想敢试、突破常规，不局限固有思路，遇事敢闯敢创新、大胆探索。</span>
+          </div>
+        </div>
+        <div class="gene-row">
+          <div class="gene-img-wrap">
+            <img src="韧性基因.png" alt="韧性基因" class="gene-img" />
+          </div>
+          <div class="gene-info">
+            <span class="gene-name">韧性基因</span>
+            <span class="gene-desc">坚韧抗压、自愈成长，遇困难不退缩、直面挑战，持续精进稳步前行。</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    </div><!-- /section-top-row -->
+
+    <!-- 下排标题 -->
+    <div class="bottom-title">投递创意 ✨
+      <div class="bottom-subtitle">请根据上述人设及基因描绘TA的形象</div>
+    </div>
+
+    <!-- 下排：形象手记+投递 与 瓶子 齐平 -->
+    <div class="section-bottom-row">
+    <div class="wish-paper-col">
+
+    <!-- 形象手记 -->
+    <div class="wish-paper" id="wishPaper">
+      <div class="paper-title">📝 形象手记</div>
+
+      <div class="form-grid">
+        <div class="form-cell left cell-attr">
+          <svg class="wavy-border" viewBox="0 0 120 80" preserveAspectRatio="none" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M3 8 Q5 2 10 4 Q18 7 25 3 Q32 0 38 5 Q44 9 50 4 Q56 0 62 5 Q68 9 75 3 Q82 0 88 5 Q94 8 100 3 Q106 0 112 4 Q116 6 117 8 
+                     L117 72 Q115 78 110 76 Q102 73 95 77 Q88 80 82 75 Q76 71 70 76 Q64 80 58 75 Q52 71 45 77 Q38 80 32 75 Q26 71 20 77 Q13 80 8 75 Q4 72 3 70 Z" 
+                  stroke="#c49070" stroke-width="1.8" fill="rgba(255,220,230,0.3)" stroke-linecap="round"/>
+          </svg>
+          <span class="cell-label">物种图鉴</span>
+          <textarea id="attr" placeholder="TA 的专属属性？" rows="2"></textarea>
+        </div>
+
+        <div class="form-cell cell-personality">
+          <svg class="wavy-border" viewBox="0 0 120 80" preserveAspectRatio="none" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M3 8 Q5 2 10 4 Q18 7 25 3 Q32 0 38 5 Q44 9 50 4 Q56 0 62 5 Q68 9 75 3 Q82 0 88 5 Q94 8 100 3 Q106 0 112 4 Q116 6 117 8 
+                     L117 72 Q115 78 110 76 Q102 73 95 77 Q88 80 82 75 Q76 71 70 76 Q64 80 58 75 Q52 71 45 77 Q38 80 32 75 Q26 71 20 77 Q13 80 8 75 Q4 72 3 70 Z" 
+                  stroke="#7a9ab8" stroke-width="1.8" fill="rgba(220,230,255,0.3)" stroke-linecap="round"/>
+          </svg>
+          <span class="cell-label">穿搭图鉴</span>
+          <textarea id="personality" placeholder="给 TA 搭个造型～" rows="2"></textarea>
+        </div>
+
+        <div class="form-cell left cell-memory">
+          <svg class="wavy-border" viewBox="0 0 120 80" preserveAspectRatio="none" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M3 8 Q5 2 10 4 Q18 7 25 3 Q32 0 38 5 Q44 9 50 4 Q56 0 62 5 Q68 9 75 3 Q82 0 88 5 Q94 8 100 3 Q106 0 112 4 Q116 6 117 8 
+                     L117 72 Q115 78 110 76 Q102 73 95 77 Q88 80 82 75 Q76 71 70 76 Q64 80 58 75 Q52 71 45 77 Q38 80 32 75 Q26 71 20 77 Q13 80 8 75 Q4 72 3 70 Z" 
+                  stroke="#6aaa78" stroke-width="1.8" fill="rgba(220,255,230,0.3)" stroke-linecap="round"/>
+          </svg>
+          <span class="cell-label">动作图鉴</span>
+          <textarea id="memory" placeholder="TA 的招牌动作/表情？" rows="2"></textarea>
+        </div>
+
+        <div class="form-cell cell-env">
+          <svg class="wavy-border" viewBox="0 0 120 80" preserveAspectRatio="none" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M3 8 Q5 2 10 4 Q18 7 25 3 Q32 0 38 5 Q44 9 50 4 Q56 0 62 5 Q68 9 75 3 Q82 0 88 5 Q94 8 100 3 Q106 0 112 4 Q116 6 117 8 
+                     L117 72 Q115 78 110 76 Q102 73 95 77 Q88 80 82 75 Q76 71 70 76 Q64 80 58 75 Q52 71 45 77 Q38 80 32 75 Q26 71 20 77 Q13 80 8 75 Q4 72 3 70 Z" 
+                  stroke="#b8a050" stroke-width="1.8" fill="rgba(255,245,210,0.35)" stroke-linecap="round"/>
+          </svg>
+          <span class="cell-label">场所图鉴</span>
+          <textarea id="env" placeholder="TA 经常会出现在哪？" rows="2"></textarea>
+        </div>
+      </div>
+
+      <button class="submit-btn-small" id="submitBtn" onclick="submitWish()">一键投递 <svg viewBox="0 0 36 30" fill="none" xmlns="http://www.w3.org/2000/svg" style="width:22px;height:18px;vertical-align:middle;margin-left:4px;"><path d="M4 16 L30 4 L22 24 L18 16 Z" stroke="#5a3e7a" stroke-width="1.4" fill="rgba(180,160,200,0.2)" stroke-linecap="round" stroke-linejoin="round"/><path d="M18 16 L30 4 L14 14" stroke="#5a3e7a" stroke-width="1" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+    </div>
+    </div><!-- /wish-paper-col -->
+
+    <!-- 飞行纸卷 -->
+    <div class="flying-scroll" id="flyingScroll"></div>
+
+    <!-- 许愿瓶 -->
+    <div class="bottle-container" id="bottleContainer">
+      <div class="bottle-glow"></div>
+      <div class="bottle-ring"></div>
+
+      <img src="许愿瓶.png" alt="许愿瓶" style="
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+        filter: drop-shadow(0 12px 40px rgba(90, 62, 122, 0.2));
+        animation: bottleFloat 4s ease-in-out infinite;
+      " />
+
+      <div class="bottle-sparkles">
+        <span class="sparkle">✦</span>
+        <span class="sparkle">∗</span>
+        <span class="sparkle">✧</span>
+        <span class="sparkle">✦</span>
+        <span class="sparkle">∗</span>
+        <span class="sparkle">✧</span>
+        <span class="sparkle">✦</span>
+        <span class="sparkle">∗</span>
+        <span class="sparkle">✧</span>
+        <span class="sparkle">✦</span>
+      </div>
+
+      <div class="bottle-particles" id="bottleParticles"></div>
+
+      <!-- 瓶子贴纸装饰 - 手绘风格 -->
+      <svg class="bottle-sticker sticker-top-left" viewBox="0 0 60 60" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M30 8 C33 2 38 2 38 8 C44 4 48 10 42 14 C48 18 44 24 38 20 C38 26 33 28 30 22 C27 28 22 26 22 20 C16 24 12 18 18 14 C12 10 16 4 22 8 C22 2 27 2 30 8Z" stroke="#d4889a" stroke-width="1.8" fill="rgba(240,180,200,0.3)" stroke-linecap="round"/>
+        <circle cx="30" cy="14" r="4" fill="rgba(220,160,190,0.5)"/>
+      </svg>
+      <svg class="bottle-sticker sticker-top-right" viewBox="0 0 50 50" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M25 6 L28 18 L40 18 L30 26 L34 38 L25 30 L16 38 L20 26 L10 18 L22 18 Z" stroke="#c490d8" stroke-width="1.6" fill="rgba(210,180,230,0.25)" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      <svg class="bottle-sticker sticker-mid-left" viewBox="0 0 56 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M4 28 Q8 12 20 16 Q28 4 40 14 Q52 8 52 22 Q54 32 44 34 Q36 40 26 36 Q14 42 8 34 Q2 32 4 28Z" stroke="#a0c8b0" stroke-width="1.5" fill="rgba(180,220,190,0.25)" stroke-linecap="round"/>
+      </svg>
+      <svg class="bottle-sticker sticker-mid-right" viewBox="0 0 40 50" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M20 46 C20 46 4 32 4 20 C4 12 10 6 16 6 C18 6 20 8 20 8 C20 8 22 6 24 6 C30 6 36 12 36 20 C36 32 20 46 20 46Z" stroke="#e8a0b8" stroke-width="1.6" fill="rgba(240,180,200,0.25)" stroke-linecap="round"/>
+      </svg>
+      <svg class="bottle-sticker sticker-bot-left" viewBox="0 0 60 30" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M4 26 Q10 18 16 22 Q22 14 28 20 Q34 10 40 18 Q46 12 52 20 Q56 16 58 22" stroke="#b8a8d0" stroke-width="1.5" fill="rgba(200,190,220,0.2)" stroke-linecap="round"/>
+        <path d="M4 26 Q10 24 16 26 Q22 22 28 26 Q34 20 40 26 Q46 22 52 26 Q56 24 58 26" stroke="#b8a8d0" stroke-width="1" fill="rgba(200,190,220,0.1)" stroke-linecap="round"/>
+      </svg>
+      <svg class="bottle-sticker sticker-bot-right" viewBox="0 0 44 44" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M22 4 C24 8 28 10 32 8 C30 14 28 20 30 26 C26 22 22 20 18 24 C20 18 20 12 16 8 C20 10 22 6 22 4Z" stroke="#d8c080" stroke-width="1.5" fill="rgba(230,210,150,0.25)" stroke-linecap="round"/>
+        <path d="M22 4 L22 30" stroke="#c4a868" stroke-width="1.2" stroke-linecap="round"/>
+        <path d="M22 16 Q18 14 16 16" stroke="#c4a868" stroke-width="1" stroke-linecap="round" fill="none"/>
+        <path d="M22 22 Q26 20 28 22" stroke="#c4a868" stroke-width="1" stroke-linecap="round" fill="none"/>
+      </svg>
+      <svg class="bottle-sticker sticker-float-1" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="18" cy="18" r="14" stroke="#90b8d8" stroke-width="1.5" fill="rgba(180,210,240,0.15)" stroke-linecap="round"/>
+        <circle cx="18" cy="18" r="8" stroke="#90b8d8" stroke-width="0.8" fill="rgba(180,210,240,0.1)" stroke-linecap="round"/>
+      </svg>
+      <svg class="bottle-sticker sticker-float-2" viewBox="0 0 48 36" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M6 24 Q6 8 18 10 Q22 2 30 8 Q40 4 42 16 Q48 20 42 24 Z" stroke="#c4a8d0" stroke-width="1.4" fill="rgba(210,190,230,0.2)" stroke-linecap="round"/>
+      </svg>
+    </div>
+    </div><!-- /section-bottom-row -->
+
+    <!-- 结束语 -->
+    <div class="closing-words">
+      <div class="closing-line"></div>
+      <p class="closing-text">你的小创意，都藏进了星瓶里。</p>
+      <p class="closing-text sub">下次见面，TA 会带着星光登场～</p>
+      <div class="closing-line"></div>
+    </div>
+
+  </div>
+
+  <!-- 成功提示 -->
+  <div class="success-msg" id="successMsg">
+    <div class="big-icon">🎉</div>
+    <p>许愿纸条已投递！</p>
+    <div class="sub">愿你的愿望被温柔接收 ✉️</div>
+  </div>
+</div>
+
+<script>
+  // ===== 界面切换 =====
+  function goToScreen2() {
+    const s1 = document.getElementById('screen1');
+    const s2 = document.getElementById('screen2');
+    s1.classList.add('hidden');
+    setTimeout(() => {
+      s2.classList.add('active');
+      initParticles();
+      initBottleParticles();
+      initBubbles();
+      initShootingStars();
+    }, 400);
+  }
+
+  // ===== Canvas 漫游光点 + 飘落花瓣 =====
+  function initParticles() {
+    const canvas = document.getElementById('particleCanvas');
+    const ctx = canvas.getContext('2d');
+    canvas.width = window.innerWidth;
+    canvas.height = document.getElementById('screen2').scrollHeight;
+
+    // 柔和光点
+    const lights = [];
+    for (let i = 0; i < 25; i++) {
+      lights.push({
+        x: Math.random() * canvas.width,
+        y: Math.random() * canvas.height,
+        size: Math.random() * 2.5 + 1,
+        speedX: (Math.random() - 0.5) * 0.3,
+        speedY: (Math.random() - 0.5) * 0.2,
+        opacity: Math.random() * 0.4 + 0.1,
+        opacityDir: Math.random() > 0.5 ? 1 : -1,
+        color: ['rgba(196,144,216,', 'rgba(232,160,184,', 'rgba(144,212,184,', 'rgba(200,190,220,'][Math.floor(Math.random()*4)]
+      });
+    }
+
+    // 飘落花瓣
+    const petals = [];
+    for (let i = 0; i < 12; i++) {
+      petals.push({
+        x: Math.random() * canvas.width,
+        y: Math.random() * canvas.height,
+        size: Math.random() * 6 + 4,
+        speedX: (Math.random() - 0.3) * 0.6,
+        speedY: Math.random() * 0.4 + 0.2,
+        rotation: Math.random() * 360,
+        rotSpeed: (Math.random() - 0.5) * 1.5,
+        wobble: Math.random() * Math.PI * 2,
+        wobbleSpeed: Math.random() * 0.02 + 0.01,
+        opacity: Math.random() * 0.35 + 0.15,
+        color: ['rgba(220,180,200,', 'rgba(200,180,230,', 'rgba(180,220,200,', 'rgba(220,210,170,'][Math.floor(Math.random()*4)]
+      });
+    }
+
+    function drawPetal(p) {
+      ctx.save();
+      ctx.translate(p.x, p.y);
+      ctx.rotate(p.rotation * Math.PI / 180);
+      ctx.globalAlpha = p.opacity;
+      ctx.beginPath();
+      // 手绘花瓣形状：贝塞尔曲线
+      ctx.moveTo(0, 0);
+      ctx.bezierCurveTo(p.size * 0.5, -p.size * 0.8, p.size, -p.size * 0.5, p.size * 0.5, 0);
+      ctx.bezierCurveTo(p.size, p.size * 0.5, p.size * 0.5, p.size * 0.8, 0, 0);
+      ctx.fillStyle = p.color + '0.6)';
+      ctx.fill();
+      ctx.strokeStyle = p.color + '0.9)';
+      ctx.lineWidth = 0.6;
+      ctx.stroke();
+      ctx.restore();
+    }
+
+    function animate() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      // 绘制光点
+      lights.forEach(p => {
+        p.x += p.speedX;
+        p.y += p.speedY;
+        p.opacity += p.opacityDir * 0.004;
+        if (p.opacity > 0.5) p.opacityDir = -1;
+        if (p.opacity < 0.08) p.opacityDir = 1;
+        if (p.x < 0) p.x = canvas.width;
+        if (p.x > canvas.width) p.x = 0;
+        if (p.y < 0) p.y = canvas.height;
+        if (p.y > canvas.height) p.y = 0;
+
+        // 柔光晕
+        const grad = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, p.size * 4);
+        grad.addColorStop(0, p.color + p.opacity + ')');
+        grad.addColorStop(1, p.color + '0)');
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.size * 4, 0, Math.PI * 2);
+        ctx.fillStyle = grad;
+        ctx.fill();
+
+        // 中心亮点
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.size * 0.8, 0, Math.PI * 2);
+        ctx.fillStyle = p.color + Math.min(p.opacity * 1.5, 0.8) + ')';
+        ctx.fill();
+      });
+
+      // 绘制花瓣
+      petals.forEach(p => {
+        p.wobble += p.wobbleSpeed;
+        p.x += p.speedX + Math.sin(p.wobble) * 0.5;
+        p.y += p.speedY;
+        p.rotation += p.rotSpeed;
+
+        if (p.y > canvas.height + 20) { p.y = -20; p.x = Math.random() * canvas.width; }
+        if (p.x < -20) p.x = canvas.width + 20;
+        if (p.x > canvas.width + 20) p.x = -20;
+
+        drawPetal(p);
+      });
+
+      requestAnimationFrame(animate);
+    }
+
+    animate();
+
+    window.addEventListener('resize', () => {
+      canvas.width = window.innerWidth;
+      canvas.height = document.getElementById('screen2').scrollHeight;
+    });
+  }
+
+  // ===== 瓶子周围飘起柔光 =====
+  function initBottleParticles() {
+    const container = document.getElementById('bottleParticles');
+    const colors = [
+      'rgba(196,144,216,0.5)',
+      'rgba(232,160,184,0.4)',
+      'rgba(144,212,184,0.4)',
+      'rgba(200,190,220,0.5)',
+      'rgba(255,240,200,0.5)'
+    ];
+
+    for (let i = 0; i < 14; i++) {
+      const p = document.createElement('div');
+      p.className = 'b-particle';
+      const size = Math.random() * 6 + 2;
+      p.style.width = size + 'px';
+      p.style.height = size + 'px';
+      p.style.left = (Math.random() * 80 + 10) + '%';
+      p.style.bottom = (Math.random() * 30) + '%';
+      p.style.background = colors[Math.floor(Math.random() * colors.length)];
+      p.style.borderRadius = '50%';
+      p.style.boxShadow = '0 0 ' + (size * 2) + 'px ' + colors[Math.floor(Math.random() * colors.length)];
+      p.style.animationDuration = (Math.random() * 4 + 3) + 's';
+      p.style.animationDelay = (Math.random() * 6) + 's';
+      container.appendChild(p);
+    }
+  }
+
+  // ===== 漂浮水彩光斑 =====
+  function initBubbles() {
+    const screen2 = document.getElementById('screen2');
+
+    const washes = [
+      { bg: 'radial-gradient(ellipse at 40% 35%, rgba(196,144,216,0.3), rgba(196,144,216,0.05) 60%, transparent)', shape: '65% 55% 70% 60% / 55% 65% 50% 60%' },
+      { bg: 'radial-gradient(ellipse at 35% 40%, rgba(232,160,184,0.3), rgba(232,160,184,0.05) 60%, transparent)', shape: '55% 65% 50% 60% / 60% 50% 65% 55%' },
+      { bg: 'radial-gradient(ellipse at 45% 30%, rgba(144,212,184,0.28), rgba(144,212,184,0.05) 60%, transparent)', shape: '60% 50% 65% 55% / 55% 60% 50% 65%' },
+      { bg: 'radial-gradient(ellipse at 30% 45%, rgba(200,190,220,0.3), rgba(200,190,220,0.05) 60%, transparent)', shape: '50% 60% 55% 65% / 65% 55% 60% 50%' },
+      { bg: 'radial-gradient(ellipse at 50% 35%, rgba(240,216,128,0.28), rgba(240,216,128,0.05) 60%, transparent)', shape: '60% 55% 50% 65% / 55% 65% 55% 60%' },
+    ];
+
+    function createBubble() {
+      const bubble = document.createElement('div');
+      bubble.className = 'bubble';
+      const wash = washes[Math.floor(Math.random() * washes.length)];
+      const size = Math.random() * 60 + 30;
+      bubble.style.width = size + 'px';
+      bubble.style.height = (size * (0.7 + Math.random() * 0.6)) + 'px';
+      bubble.style.left = (Math.random() * 100) + '%';
+      bubble.style.bottom = '-8%';
+      bubble.style.background = wash.bg;
+      bubble.style.borderRadius = wash.shape;
+      bubble.style.filter = 'blur(' + (Math.random() * 4 + 3) + 'px)';
+      bubble.style.setProperty('--drift', (Math.random() * 80 - 40) + 'px');
+      bubble.style.animationDuration = (Math.random() * 12 + 10) + 's';
+      screen2.appendChild(bubble);
+
+      bubble.addEventListener('animationend', () => bubble.remove());
+    }
+
+    for (let i = 0; i < 4; i++) {
+      setTimeout(createBubble, Math.random() * 5000);
+    }
+
+    setInterval(createBubble, 3000);
+  }
+
+  // ===== 闪烁星光 =====
+  function initShootingStars() {
+    const screen2 = document.getElementById('screen2');
+
+    function createStar() {
+      const star = document.createElement('div');
+      star.style.position = 'absolute';
+      star.style.pointerEvents = 'none';
+      star.style.zIndex = '3';
+
+      // 随机大小星光
+      const size = Math.random() * 4 + 2;
+      star.style.width = size + 'px';
+      star.style.height = size + 'px';
+      star.style.left = (Math.random() * 90 + 5) + '%';
+      star.style.top = (Math.random() * 80 + 5) + '%';
+      star.style.borderRadius = '50%';
+      star.style.background = 'rgba(255,255,255,0.8)';
+      star.style.boxShadow = '0 0 ' + (size * 3) + 'px rgba(220,200,240,0.6)';
+      star.style.animation = 'twinkle ' + (Math.random() * 2 + 1.5) + 's ease-in-out ' + (Math.random() * 2) + 's infinite';
+
+      screen2.appendChild(star);
+    }
+
+    // 添加闪烁关键帧
+    const style = document.createElement('style');
+    style.textContent = `@keyframes twinkle { 0%, 100% { opacity: 0; transform: scale(0.5); } 50% { opacity: 1; transform: scale(1.2); } }`;
+    document.head.appendChild(style);
+
+    for (let i = 0; i < 15; i++) {
+      setTimeout(createStar, Math.random() * 2000);
+    }
+  }
+
+  // ===== 投递逻辑 =====
+  function submitWish() {
+    const attr = document.getElementById('attr').value.trim();
+    const personality = document.getElementById('personality').value.trim();
+    const memory = document.getElementById('memory').value.trim();
+    const env = document.getElementById('env').value.trim();
+
+    if (!attr && !personality && !memory && !env) {
+      alert('至少填写一项再投递哦～ ✨');
+      return;
+    }
+
+    const paper = document.getElementById('wishPaper');
+    const scroll = document.getElementById('flyingScroll');
+    const btn = document.getElementById('submitBtn');
+    btn.disabled = true;
+
+    // 纸条卷起
+    paper.classList.add('rolling');
+
+    // 小纸卷飞出
+    setTimeout(() => {
+      scroll.classList.add('fly');
+    }, 500);
+
+    // 瓶子闪光效果
+    setTimeout(() => {
+      const bottle = document.getElementById('bottleContainer');
+      bottle.style.transition = 'filter 0.3s';
+      bottle.style.filter = 'drop-shadow(0 0 30px rgba(124,77,255,0.6)) brightness(1.15)';
+      setTimeout(() => {
+        bottle.style.filter = '';
+      }, 600);
+    }, 1400);
+
+    // 发送邮件
+    setTimeout(() => {
+      const subject = encodeURIComponent('🌟 来自TA的世界的许愿纸条');
+      const body = encodeURIComponent(
+        `🔮 属性：${attr || '（未填写）'}\n` +
+        `💫 性格：${personality || '（未填写）'}\n` +
+        `📌 记忆点：${memory || '（未填写）'}\n` +
+        `🌿 环境：${env || '（未填写）'}\n\n` +
+        `— 来自「TA的世界」许愿瓶 ✨`
+      );
+      window.open(`mailto:hebeiren@habatrading.com?subject=${subject}&body=${body}`, '_self');
+    }, 1500);
+
+    // 成功提示
+    setTimeout(() => {
+      document.getElementById('successMsg').classList.add('show');
+    }, 2200);
+
+    // 重置
+    setTimeout(() => {
+      paper.classList.remove('rolling');
+      paper.classList.add('reset-in');
+      scroll.classList.remove('fly');
+      document.getElementById('attr').value = '';
+      document.getElementById('personality').value = '';
+      document.getElementById('memory').value = '';
+      document.getElementById('env').value = '';
+      btn.disabled = false;
+
+      setTimeout(() => {
+        document.getElementById('successMsg').classList.remove('show');
+        paper.classList.remove('reset-in');
+      }, 2500);
+    }, 5000);
+  }
+</script>
+
+</body>
+</html>
